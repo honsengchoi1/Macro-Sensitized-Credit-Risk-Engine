@@ -183,3 +183,7 @@ cython_debug/
 # Custom Project Ignores
 *.db
 *.~lock.*
+
+PROJECT_STATE.md
+
+~$*
