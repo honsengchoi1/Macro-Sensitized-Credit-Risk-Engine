@@ -5,18 +5,23 @@ import os
 def assemble_analytics_panel():
     print("STATUS: Initiating SQL Feature Assembly...")
     
-    # 1. Connect to the warehouse
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    db_path = os.path.join(base_dir, '../data/processed/risk_warehouse.db')
-    export_path = os.path.join(base_dir, '../data/processed/master_analytics_panel.csv')
+    # 1. Dynamically locate the root directory (Go up two levels from src/pipeline)
+    pipeline_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir = os.path.dirname(os.path.dirname(pipeline_dir))
     
-    print(f"STATUS: Extracting data from {db_path}...")
+    # Define the target directory and guarantee it exists
+    data_dir = os.path.join(root_dir, 'data', 'processed')
+    os.makedirs(data_dir, exist_ok=True)
+    
+    db_path = os.path.join(data_dir, 'risk_warehouse.db')
+    export_path = os.path.join(data_dir, 'master_analytics_panel.csv')
+    
+    print(f"STATUS: Connecting to database at {db_path}...")
     
     try:
         conn = sqlite3.connect(db_path)
         
         # 2. The Advanced SQL CTE
-        # We join the performance to the static vintages, then LEFT JOIN the macro variables by date.
         sql_query = """
         WITH loan_base AS (
             SELECT 
@@ -48,7 +53,7 @@ def assemble_analytics_panel():
         # 3. Pull directly into a Pandas DataFrame
         df_panel = pd.read_sql_query(sql_query, conn)
         
-        # 4. Save back to the DB as a master view/table, and export to CSV for the Stats engine
+        # 4. Save back to the DB as a master view/table, and export to CSV
         df_panel.to_sql('master_analytics_panel', conn, if_exists='replace', index=False)
         df_panel.to_csv(export_path, index=False)
         
