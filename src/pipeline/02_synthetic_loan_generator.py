@@ -83,7 +83,16 @@ def commit_to_warehouse(df_vintages, df_performance):
     try:
         conn = sqlite3.connect(db_path)
         
-        # Write to SQL (replace tables if they exist for clean re-runs)
+        # =====================================================================
+        #TECH DEBT NOTE:
+        # Using `if_exists='replace'` executes a DROP TABLE command, which 
+        # destroys Primary/Foreign Key constraints. This is acceptable here 
+        # for clean local synthetic generation runs.
+        #
+        # IN PRODUCTION: We would explicitly define the SQLAlchemy ORM schema 
+        # and use an UPSERT (Insert/Update) operation to protect historical 
+        # data and maintain referential integrity.
+        # =====================================================================
         df_vintages.to_sql('internal_loan_vintages', conn, if_exists='replace', index=False)
         df_performance.to_sql('portfolio_monthly_performance', conn, if_exists='replace', index=False)
         
