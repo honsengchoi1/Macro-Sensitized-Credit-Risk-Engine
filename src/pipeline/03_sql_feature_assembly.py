@@ -20,9 +20,15 @@ def assemble_analytics_panel():
     
     try:
         conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
         
-        # 2. The Advanced SQL CTE
-        sql_query = """
+        # 2. The Production-Grade VIEW Architecture
+        # Drop the view/table if it exists to prevent collision, then create the View.
+        cursor.execute("DROP TABLE IF EXISTS master_analytics_panel")
+        cursor.execute("DROP VIEW IF EXISTS master_analytics_panel")
+        
+        sql_view_logic = """
+        CREATE VIEW master_analytics_panel AS
         WITH loan_base AS (
             SELECT 
                 p.reporting_date, 
@@ -50,11 +56,12 @@ def assemble_analytics_panel():
         ORDER BY l.cohort_id, l.reporting_date;
         """
         
-        # 3. Pull directly into a Pandas DataFrame
-        df_panel = pd.read_sql_query(sql_query, conn)
+        cursor.execute(sql_view_logic)
+        conn.commit()
+        print("STATUS: Production VIEW 'master_analytics_panel' successfully materialized in database.")
         
-        # 4. Save back to the DB as a master view/table, and export to CSV
-        df_panel.to_sql('master_analytics_panel', conn, if_exists='replace', index=False)
+        # 3. Pull directly from the new VIEW into Pandas for the CSV export
+        df_panel = pd.read_sql_query("SELECT * FROM master_analytics_panel", conn)
         df_panel.to_csv(export_path, index=False)
         
         print(f"STATUS: Assembly Complete. Master panel shape: {df_panel.shape}")
