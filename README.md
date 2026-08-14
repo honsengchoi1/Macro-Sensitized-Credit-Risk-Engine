@@ -29,11 +29,12 @@ To ensure robust standard errors and prevent false signals, this model strictly 
 > * **The Solution:** Loans were aggregated into 144 distinct demographic buckets (e.g., Prime, Fixed-Rate, Jan 2021 Origination). Tracking these cohorts yielded $N=3,984$ monthly observations. Standard errors in the final OLS model are explicitly clustered at the `cohort_id` level to align data density with macro reporting frequencies.
 
 **The Causal Specification:**
+
 $$Y_{it} = \beta_0 + \beta_1(Group)_i + \beta_2(Time)_t + \beta_3(Group \times Time)_{it} + \gamma X_{it} + \epsilon_{it}$$
+
 *(Where $\beta_3$ represents the isolated causal impact of the rate shock).*
 
-<details>
-<summary><b>🔍 Click here to view the raw OLS Regression Output (statsmodels)</b></summary>
+**🔍 Raw OLS Regression Output (statsmodels)**
 
 ```text
 ==============================================================================
@@ -43,7 +44,7 @@ Dep. Variable:              npl_ratio   R-squared:                       0.482
 Model:                            OLS   Adj. R-squared:                  0.481
 Covariance Type:              cluster   Prob (F-statistic):           2.19e-53
 =====================================================================================
-                        coef    std err          z      P>|z|      [0.025      0.975]
+                         coef    std err          z      P>|z|      [0.025      0.975]
 -------------------------------------------------------------------------------------
 Intercept             0.0405      0.005      7.639      0.000       0.030       0.051
 Group_Treated      3.162e-05      0.003      0.010      0.992      -0.006       0.006
@@ -56,7 +57,6 @@ wage_growth       -5.446e-05      0.000     -0.271      0.786      -0.000       
 INTERPRETATION KEY:
 -> Look at 'Interaction_DiD' (Beta 3). This is the true causal impact of the Fed Hike.
 ```
-</details>
 
 ## 3. Software Engineering & ELT Pipeline
 The data pipeline relies on a modular ELT (Extract, Load, Transform) architecture designed for enterprise scalability and strict referential integrity.
